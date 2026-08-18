@@ -63,6 +63,18 @@ class JuegosViewModel(
             _estaCargandoApi.value = false
         }
     }
+
+    suspend fun obtenerJuegoPorId(id: Int): Juego? {
+        return repositorio.obtenerJuegoEspecifico(id)
+    }
+
+    fun actualizarEstadoJuego(juego: Juego, nuevoEstado: String) {
+        viewModelScope.launch {
+            // Como usamos REPLACE en el DAO, al guardar el mismo ID se actualizan los datos
+            val juegoActualizado = juego.copy(estadoJuego = nuevoEstado)
+            repositorio.guardarJuegoLocal(juegoActualizado)
+        }
+    }
 }
 
 // ---------------------------------------------------------
