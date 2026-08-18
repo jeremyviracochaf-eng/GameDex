@@ -6,38 +6,27 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun AppNavegacion() {
+fun AppNavegacion(viewModel: JuegosViewModel) { // <-- Añadimos el parámetro aquí
     val navController = rememberNavController()
 
-    // Definición de las 5 pantallas obligatorias del proyecto
     NavHost(navController = navController, startDestination = "explorar_api") {
-
-        // 1. Pantalla para consumir Retrofit (Inicio)
         composable("explorar_api") {
-            PantallaExplorar(navController = navController)
+            PantallaExplorar(navController = navController, viewModel = viewModel)
         }
-
-        // 2. Pantalla para leer desde Room (Tu Backlog local)
         composable("mi_coleccion") {
-            PantallaColeccion(navController = navController)
+            PantallaColeccion(navController = navController, viewModel = viewModel)
         }
-
-        // 3. Pantalla de detalles del juego seleccionado
         composable("detalle/{juegoId}") { backStackEntry ->
             val juegoIdStr = backStackEntry.arguments?.getString("juegoId")
             val juegoId = juegoIdStr?.toIntOrNull() ?: 0
 
-            PantallaDetalleJuego(navController = navController, juegoId = juegoId)
+            PantallaDetalleJuego(navController = navController, viewModel = viewModel, juegoId = juegoId)
         }
-
-        // 4. Pantalla de Hardware (Escáner QR con la cámara)
         composable("escaner_qr") {
-            PantallaEscanerQR(navController = navController)
+            PantallaEscanerQR(navController = navController, viewModel = viewModel)
         }
-
-        // 5. Pantalla de Ajustes (DataStore)
         composable("ajustes") {
-            PantallaAjustes(navController = navController)
+            PantallaAjustes(navController = navController, viewModel = viewModel)
         }
     }
 }
