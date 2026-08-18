@@ -20,7 +20,13 @@ class RepositorioJuegos(private val juegoDao: JuegoDao) {
         return juegoDao.obtenerJuegoPorId(id)
     }
 
-    // Nota: Más adelante, cuando configuremos Retrofit (la API),
-    // inyectaremos también la API aquí y agregaremos las funciones
-    // para descargar datos de internet.
+    suspend fun obtenerJuegosDeInternet(): List<JuegoRed> {
+        return try {
+            // Llamada directa sin parámetros
+            ClienteRetrofit.api.obtenerJuegosGratis()
+        } catch (e: Exception) {
+            android.util.Log.e("API_ERROR", "Error descargando juegos: ${e.message}")
+            emptyList()
+        }
+    }
 }
