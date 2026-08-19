@@ -23,9 +23,19 @@ class JuegosViewModel(
             initialValue = emptyList()
         )
 
-    fun guardarJuego(juego: Juego) {
+    fun guardarJuego(juegoNuevo: Juego) {
         viewModelScope.launch {
-            repositorio.guardarJuegoLocal(juego)
+            // 1. Buscamos si el juego ya existe en tu base de datos local
+            val juegoExistente = repositorio.obtenerJuegoEspecifico(juegoNuevo.id)
+
+            if (juegoExistente != null) {
+                // 2. Si el juego YA ESTÁ en tu colección, protegemos tu progreso.
+                val juegoRespetandoEstado = juegoNuevo.copy(estadoJuego = juegoExistente.estadoJuego)
+                repositorio.guardarJuegoLocal(juegoRespetandoEstado)
+            } else {
+                // 3. Si es un juego nuevo, lo guardamos tal cual llegó
+                repositorio.guardarJuegoLocal(juegoNuevo)
+            }
         }
     }
 

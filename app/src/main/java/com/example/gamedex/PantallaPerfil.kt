@@ -1,10 +1,11 @@
 package com.example.gamedex
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -148,33 +150,38 @@ fun PantallaPerfil(
     val permisoCamara = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { concedido ->
-
         if (concedido) {
-
-            // Si el usuario acaba de conceder el permiso,
-            // continuamos con la cámara.
             val uri = uriFotoTemporal
-
             if (uri != null) {
                 tomarFoto.launch(uri)
             }
-
         } else {
+            // Si el usuario deniega, comprobamos si es denegación permanente
+            val activity = contexto as? Activity
+            val mostrarExplicacion = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
+            } ?: false
 
-            // Si rechazó el permiso, eliminamos la URI temporal.
-            val uri = uriFotoTemporal
-
-            if (uri != null) {
-                try {
-                    contexto.contentResolver.delete(
-                        uri,
-                        null,
-                        null
+            if (!mostrarExplicacion) {
+                // Denegación permanente o "No volver a preguntar"
+                scope.launch {
+                    val resultado = snackbarHostState.showSnackbar(
+                        message = "El acceso a la cámara está bloqueado en los ajustes.",
+                        actionLabel = "AJUSTES",
+                        duration = SnackbarDuration.Long
                     )
-                } catch (_: Exception) {
+                    if (resultado == SnackbarResult.ActionPerformed) {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", contexto.packageName, null)
+                        }
+                        contexto.startActivity(intent)
+                    }
+                }
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Se requiere la cámara para el avatar.")
                 }
             }
-
             uriFotoTemporal = null
         }
     }
@@ -206,30 +213,32 @@ fun PantallaPerfil(
     // =========================================================
 
     fun abrirCamara() {
-
         val nuevoUri = crearUriParaCamara()
-
-        if (nuevoUri == null) {
-            return
-        }
+        if (nuevoUri == null) return
 
         uriFotoTemporal = nuevoUri
 
-        val tienePermiso =
-            ContextCompat.checkSelfPermission(
-                contexto,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+        val tienePermiso = ContextCompat.checkSelfPermission(
+            contexto,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
 
         if (tienePermiso) {
-
             tomarFoto.launch(nuevoUri)
-
         } else {
+            val activity = contexto as? Activity
+            val mostrarExplicacion = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
+            } ?: false
 
-            permisoCamara.launch(
-                Manifest.permission.CAMERA
-            )
+            if (!mostrarExplicacion && ContextCompat.checkSelfPermission(contexto, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                // Si no debemos mostrar explicación y no tenemos el permiso, 
+                // es probable que ya se haya denegado permanentemente antes de pulsar el botón.
+                // Intentamos pedirlo una vez más, y si falla el lanzador manejará la lógica.
+                permisoCamara.launch(Manifest.permission.CAMERA)
+            } else {
+                permisoCamara.launch(Manifest.permission.CAMERA)
+            }
         }
     }
 
