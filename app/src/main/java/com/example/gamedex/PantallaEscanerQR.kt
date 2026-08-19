@@ -1,7 +1,11 @@
 package com.example.gamedex
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
@@ -44,7 +49,10 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -375,10 +383,26 @@ fun PantallaEscanerQR(
                     Button(
 
                         onClick = {
+                            val activity = contexto as? Activity
+                            val mostrarExplicacion = activity?.let {
+                                ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.CAMERA)
+                            } ?: false
 
-                            lanzadorPermiso.launch(
-                                Manifest.permission.CAMERA
-                            )
+                            if (!permisoConcedido && !mostrarExplicacion) {
+                                // Esto suele indicar que el usuario marcó "No volver a preguntar"
+                                // o que es la primera vez y el sistema decidirá si muestra el diálogo.
+                                // Para asegurar, lanzamos el pedido primero.
+                                lanzadorPermiso.launch(Manifest.permission.CAMERA)
+                                
+                                // Si sigue sin permiso y ya se pidió antes (mostrarExplicacion es false),
+                                // redirigimos a Ajustes.
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", contexto.packageName, null)
+                                }
+                                contexto.startActivity(intent)
+                            } else {
+                                lanzadorPermiso.launch(Manifest.permission.CAMERA)
+                            }
                         }
                     ) {
 
@@ -517,6 +541,27 @@ private fun procesarQR(
         }
 
         // =====================================================
+        // VALIDACIÓN DE EXISTENCIA
+        // =====================================================
+
+        val juegosActuales = viewModel.todosLosJuegosLocales.value
+        val yaExiste = juegosActuales.any { it.id == juego.id }
+
+        if (yaExiste) {
+            Toast.makeText(
+                contexto,
+                "El juego '${juego.titulo}' ya existe en tu colección.",
+                Toast.LENGTH_SHORT
+            ).show()
+            
+            // Esperamos 2 segundos antes de permitir otro escaneo para evitar spam
+            Executors.newSingleThreadScheduledExecutor().schedule({
+                alFallar()
+            }, 2000, TimeUnit.MILLISECONDS)
+            return
+        }
+
+        // =====================================================
         // GUARDAR EN ROOM
         // =====================================================
 
@@ -542,10 +587,13 @@ private fun procesarQR(
         Toast.makeText(
             contexto,
             "El QR no contiene un juego válido",
-            Toast.LENGTH_LONG
+            Toast.LENGTH_SHORT
         ).show()
-
-        alFallar()
+        
+        // Esperamos un poco antes de permitir otro escaneo para no saturar con Toasts
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            alFallar()
+        }, 2000, java.util.concurrent.TimeUnit.MILLISECONDS)
 
     } catch (e: Exception) {
 
@@ -558,9 +606,12 @@ private fun procesarQR(
         Toast.makeText(
             contexto,
             "QR inválido. Revisa los datos del juego.",
-            Toast.LENGTH_LONG
+            Toast.LENGTH_SHORT
         ).show()
 
-        alFallar()
+        // Esperamos un poco antes de permitir otro escaneo
+        Executors.newSingleThreadScheduledExecutor().schedule({
+            alFallar()
+        }, 2000, java.util.concurrent.TimeUnit.MILLISECONDS)
     }
 }
