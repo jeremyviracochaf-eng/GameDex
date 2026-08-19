@@ -66,5 +66,7 @@ La aplicación utiliza la **Free-To-Play Games API** (vía [FreeToGame](https://
 - **CameraX**: Integración simplificada de la cámara.
 - **Navigation Compose**: Gestión de la navegación entre pantallas.
 
----
-Desarrollado con ❤️ para la comunidad gamer.
+## 🏗️ Diagrama de la Arquitectura
+
+<img width="786" height="835" alt="Captura de pantalla 2026-08-19 111944" src="https://github.com/user-attachments/assets/487344a9-ead1-495c-986a-f0872d7de5c9" />
+
