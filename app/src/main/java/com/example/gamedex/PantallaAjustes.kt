@@ -1,6 +1,7 @@
 package com.example.gamedex
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.gamedex.ui.GamerTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,14 +26,11 @@ fun PantallaAjustes(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Ajustes") },
+            GamerTopAppBar(
+                title = "AJUSTES",
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver"
-                        )
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
                     }
                 }
             )
@@ -43,28 +42,49 @@ fun PantallaAjustes(
                 .padding(paddingValues)
                 .padding(24.dp)
         ) {
-            Text(
-                text = "Preferencias de la Aplicación",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Fila con el texto y el Switch (Interruptor)
-            Row(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
-                Text(text = "Modo Oscuro")
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = "PREFERENCIAS",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
 
-                Switch(
-                    checked = modoOscuroActivado,
-                    onCheckedChange = { nuevoEstado ->
-                        viewModel.cambiarModoOscuro(nuevoEstado)
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "Modo Oscuro",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Usa el tema oscuro de GameDex",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+
+                        Switch(
+                            checked = modoOscuroActivado,
+                            onCheckedChange = { viewModel.cambiarModoOscuro(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            )
+                        )
                     }
-                )
+                }
             }
         }
     }
