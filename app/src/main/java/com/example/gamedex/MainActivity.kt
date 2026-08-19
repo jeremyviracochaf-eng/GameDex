@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
 
             // Instanciamos el ViewModel
             val viewModel: JuegosViewModel = viewModel(
-                factory = JuegosViewModelFactory(repositorio, ajustesPreferencias)
+                factory = JuegosViewModelFactory(repositorio, ajustesPreferencias),
             )
 
             // Observamos el estado del modo oscuro para aplicarlo al tema

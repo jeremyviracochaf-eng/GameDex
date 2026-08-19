@@ -32,4 +32,12 @@ interface JuegoDao {
     // Borra todo el catálogo local
     @Query("DELETE FROM juegos_guardados")
     suspend fun limpiarColeccion()
+
+    // Cuenta absolutamente todos los juegos guardados
+    @Query("SELECT COUNT(*) FROM juegos_guardados")
+    fun contarJuegosTotales(): Flow<Int>
+
+    // Cuenta los juegos dependiendo de si están "Terminado", "Jugando" o "Pendiente"
+    @Query("SELECT COUNT(*) FROM juegos_guardados WHERE estadoJuego = :estado")
+    fun contarJuegosPorEstado(estado: String): Flow<Int>
 }

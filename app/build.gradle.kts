@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.ui.graphics)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -66,4 +67,25 @@ dependencies {
 
     implementation(libs.squareup.retrofit)
     implementation(libs.squareup.converter.gson)
+
+    // Lifecycle para usar LocalLifecycleOwner con Compose
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
+
+    // CameraX
+    val camerax_version = "1.6.1"
+
+    implementation("androidx.camera:camera-core:$camerax_version")
+    implementation("androidx.camera:camera-camera2:$camerax_version")
+    implementation("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation("androidx.camera:camera-view:$camerax_version")
+
+    // Google ML Kit - lector de QR
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
+    // Gson para convertir JSON -> Juego
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Generador de códigos QR
+    implementation("com.google.zxing:core:3.5.3")
+
 }
