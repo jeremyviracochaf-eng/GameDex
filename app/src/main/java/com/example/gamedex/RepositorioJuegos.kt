@@ -7,8 +7,11 @@ class RepositorioJuegos(private val juegoDao: JuegoDao) {
     // 1. LECTURA: Exponemos los flujos de datos directamente desde el DAO
     val todosLosJuegosLocales: Flow<List<Juego>> = juegoDao.obtenerTodosLosJuegos()
 
-    fun juegosPorEstado(estado: String): Flow<List<Juego>> {
-        return juegoDao.obtenerJuegosPorEstado(estado)
+    val totalJuegos: Flow<Int> =
+        juegoDao.contarJuegosTotales()
+
+    fun cantidadPorEstado(estado: String): Flow<Int> {
+        return juegoDao.contarJuegosPorEstado(estado)
     }
 
     // 2. ESCRITURA: Funciones suspendidas para modificar datos
